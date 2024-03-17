@@ -1,0 +1,32 @@
+{
+  "name": "carpiscript",
+  "version": "1.0.0",
+  "description": "CarpiScript es un lenguaje de scripting en castellano desarrollado en TypeScript. Incluye analizador léxico, analizador sintáctico e intérprete.",
+  "main": "ejecutar.ts",
+  "scripts": {
+    "start": "ts-node ejecutar.ts test.ñ",
+    "build": "tsc --outDir dist",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeandroBarone/carpiscript.git"
+  },
+  "author": "Leandro Barone",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LeandroBarone/carpiscript/issues"
+  },
+  "homepage": "https://github.com/LeandroBarone/carpiscript#readme",
+  "devDependencies": {
+    "@types/node": "^20.11.28",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "eslint": "^8.57.0",
+    "eslint-config-standard-with-typescript": "^43.0.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.1.1",
+    "ts-node": "^10.9.2"
+  }
+}

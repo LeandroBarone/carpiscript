@@ -1,33 +1,32 @@
-import { Token } from './Token'
-
+import { type Lexema } from './Lexema'
 
 export class Nodo {
-    token: Token
+  lexema: Lexema
 
-    constructor(token: Token) {
-        this.token = token
-    }
+  constructor (lexema: Lexema) {
+    this.lexema = lexema
+  }
 }
 
 export class NodoUnario extends Nodo {}
 export class NodoNumero extends NodoUnario {}
 
 export class NodoOperacionUnaria extends NodoUnario {
-    nodo: Nodo
+  nodo: Nodo
 
-    constructor(operacion: Token, nodo: Nodo) {
-        super(operacion)
-        this.nodo = nodo
-    }
+  constructor (operacion: Lexema, nodo: Nodo) {
+    super(operacion)
+    this.nodo = nodo
+  }
 }
 
 export class NodoOperacionBinaria extends Nodo {
-    nodoA: Nodo
-    nodoB: Nodo
+  nodoA: Nodo
+  nodoB: Nodo
 
-    constructor(nodoA: Nodo, operacion: Token, nodoB: Nodo) {
-        super(operacion)
-        this.nodoA = nodoA
-        this.nodoB = nodoB
-    }
+  constructor (nodoA: Nodo, operacion: Lexema, nodoB: Nodo) {
+    super(operacion)
+    this.nodoA = nodoA
+    this.nodoB = nodoB
+  }
 }
