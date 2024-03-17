@@ -3,8 +3,7 @@ import { ErrorEjecucion } from '../componentes/errores'
 
 export class Interprete {
   procesar (nodo: Nodo): number {
-    const resultado = this.evaluarNodo(nodo)
-    return resultado
+    return this.evaluarNodo(nodo)
   }
 
   private evaluarNodo (nodo: Nodo): number {

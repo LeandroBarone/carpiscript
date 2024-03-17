@@ -1,7 +1,6 @@
 import { Lexema } from '../componentes/Lexema'
 import { type Nodo, NodoOperacionUnaria, NodoOperacionBinaria, NodoNumero } from '../componentes/nodos'
 import { ErrorSintactico } from '../componentes/errores'
-import { Codigo } from '../componentes/Codigo'
 
 const UNARIOS = ['SUMA', 'RESTA']
 const EXPRESIONES = ['SUMA', 'RESTA']
@@ -9,24 +8,32 @@ const TERMINOS = ['MULTIPLICACION', 'DIVISION']
 const FACTORES = ['ENTERO', 'FLOTANTE']
 
 export class AnalizadorSintactico {
-  private lexemas: Lexema[] = []
-  private lexema: Lexema = new Lexema('', null, new Codigo(' '), 0, 0)
-  private posicion: number = 0
-
   procesar (lexemas: Lexema[]): Nodo {
+    if (lexemas.length === 0) {
+      throw new Error('La lista de lexemas no puede estar vacía')
+    }
+    const analisis = new AnalisisSintactico(lexemas)
+    return analisis.analizar()
+  }
+}
+
+export class AnalisisSintactico {
+  private readonly lexemas: Lexema[]
+  private lexema: Lexema
+  private posicion: number
+
+  constructor (lexemas: Lexema[]) {
     this.lexemas = lexemas
     this.lexema = lexemas[0]
     this.posicion = 0
-
-    return this.recorrer()
   }
 
-  private recorrer (): Nodo {
-    const nodo = this.procesarExpresion()
+  analizar (): Nodo {
+    const nodoRaiz = this.procesarExpresion()
     if (this.lexema.tipo !== 'EOF') {
       throw this.generarError(ErrorSintactico, 'Se esperaba el fin de la expresión')
     }
-    return nodo
+    return nodoRaiz
   }
 
   private avanzar (): void {
@@ -91,7 +98,7 @@ export class AnalizadorSintactico {
     return nodoA
   }
 
-  fin(): boolean {
+  fin (): boolean {
     return this.posicion >= this.lexemas.length
   }
 

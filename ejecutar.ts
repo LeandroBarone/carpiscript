@@ -1,4 +1,4 @@
-import { ejecutar } from './carpiscript'
+import { ejecutar, ErrorCarpiscript } from './carpiscript'
 import fs from 'fs'
 
 let archivo: string
@@ -17,5 +17,17 @@ try {
   process.exit(1)
 }
 
-const resultado = ejecutar(codigo)
-console.log(resultado)
+try {
+  const resultado = ejecutar(codigo)
+  console.log(resultado)
+} catch (error) {
+  if (error instanceof ErrorCarpiscript) {
+    console.error(error.trazo)
+  } else if (error instanceof Error) {
+    console.error(`${error.name}: ${error.message}`)
+  }
+  else {
+    console.error(error)
+  }
+  process.exit(1)
+}

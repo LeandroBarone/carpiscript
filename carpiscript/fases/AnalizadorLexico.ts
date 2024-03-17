@@ -3,27 +3,32 @@ import { ErrorLexico } from '../componentes/errores'
 import { Codigo } from '../componentes/Codigo'
 
 export class AnalizadorLexico {
-  private codigo: Codigo = new Codigo(' ')
-  private caracter: string = ' '
-  private posicion: number = 0
-  private nLinea: number = 0
-  private nColumna: number = 0
-
   procesar (texto: string): Lexema[] {
     if (texto.length === 0) {
       throw new Error('El código no puede estar vacío')
     }
 
+    const analisis = new AnalisisLexico(texto)
+    return analisis.analizar()
+  }
+}
+
+export class AnalisisLexico {
+  private readonly codigo: Codigo
+  private caracter: string
+  private posicion: number
+  private nLinea: number
+  private nColumna: number
+
+  constructor (texto: string) {
     this.codigo = new Codigo(texto)
     this.caracter = texto[0]
     this.posicion = 0
     this.nLinea = 0
     this.nColumna = 0
-
-    return this.analizar()
   }
 
-  private analizar (): Lexema[] {
+  analizar (): Lexema[] {
     const lexemas: Lexema[] = []
 
     while (!this.fin()) {
