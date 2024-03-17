@@ -2,6 +2,8 @@
 
 CarpiScript es un lenguaje de scripting en castellano desarrollado en TypeScript. Incluye analizador léxico, analizador sintáctico e intérprete.
 
+![Carpincho Canchero](https://raw.githubusercontent.com/LeandroBarone/carpiscript/main/carpincho.png)
+
 ## Requsitos
 
 Node y ts-node (`npm install -g ts-node`).
