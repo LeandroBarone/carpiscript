@@ -3,7 +3,7 @@ import { ErrorLexico } from '../componentes/errores'
 import { Codigo } from '../componentes/Codigo'
 import { type Sentencia } from '../componentes/Sentencia'
 
-const PALABRAS_CLAVE: string[] = []
+const PALABRAS_CLAVE: string[] = ['imprimir']
 
 export class AnalizadorLexico {
   debug: boolean = false
@@ -61,6 +61,9 @@ export class AnalisisLexico {
     while (!this.fin()) {
       if (this.esEspacio(this.caracter)) {
         // No hacer nada
+      } else if (this.esComienzoCadena(this.caracter)) {
+        sentencia.push(this.procesarCadena())
+        continue
       } else if (this.esDigito(this.caracter)) {
         sentencia.push(this.procesarNumero())
         continue
@@ -115,6 +118,28 @@ export class AnalisisLexico {
     this.nColumna++
     this.caracter = this.nColumna < this.linea.length ? this.linea[this.nColumna] : null
     this.caracterSiguiente = this.nColumna + 1 < this.linea.length ? this.linea[this.nColumna + 1] : null
+  }
+
+  private procesarCadena (): Lexema {
+    let cadena = ''
+    const nLineaInicial = this.nLinea
+    const nColumnaInicial = this.nColumna
+
+    const comienzo = this.caracter
+    this.avanzar()
+
+    while (!this.fin() && this.caracter !== comienzo) {
+      cadena += this.caracter
+      this.avanzar()
+    }
+
+    if (this.fin()) {
+      throw this.generarError(ErrorLexico, 'Cadena sin terminar')
+    }
+
+    this.avanzar()
+
+    return this.crearLexema('CADENA', cadena, nLineaInicial, nColumnaInicial)
   }
 
   private procesarNumero (): Lexema {
@@ -178,6 +203,10 @@ export class AnalisisLexico {
 
   private esEspacio (car: string | null): boolean {
     return (car !== null) ? /\s/.test(car) : false
+  }
+
+  private esComienzoCadena (car: string | null): boolean {
+    return (car !== null) ? car === '"' || car === "'" : false
   }
 
   private esDigito (car: string | null): boolean {

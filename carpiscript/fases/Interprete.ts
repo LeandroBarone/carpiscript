@@ -1,4 +1,4 @@
-import { type Nodo, NodoUnario, NodoOperacionUnaria, NodoOperacionBinaria, NodoIdentificador } from '../componentes/nodos'
+import { type Nodo, NodoUnario, NodoOperacionUnaria, NodoOperacionBinaria, NodoIdentificador, NodoNumero, NodoCadena } from '../componentes/nodos'
 import { ErrorEjecucion } from '../componentes/errores'
 import { Contexto } from '../componentes/Contexto'
 import { type Bloque } from '../componentes/Bloque'
@@ -12,7 +12,7 @@ export class Interprete {
     return resultado[resultado.length - 1]
   }
 
-  private evaluarNodo (nodo: Nodo, contexto: Contexto): number {
+  private evaluarNodo (nodo: Nodo, contexto: Contexto): any {
     if (nodo instanceof NodoUnario) {
       if (nodo instanceof NodoIdentificador) {
         return contexto.obtenerVariable(nodo.lexema.valor as string)
@@ -22,6 +22,9 @@ export class Interprete {
             return this.evaluarNodo(nodo.nodo, contexto)
           case 'RESTA':
             return -this.evaluarNodo(nodo.nodo, contexto)
+          case 'IMPRIMIR':
+            console.log(this.evaluarNodo(nodo.nodo, contexto))
+            return undefined
         }
       } else {
         return nodo.lexema.valor
@@ -42,33 +45,46 @@ export class Interprete {
         throw this.generarError(ErrorEjecucion, 'Error al evaluar la operación', nodo)
       }
 
-      switch (nodo.lexema.tipo) {
-        case 'SUMA':
-          return a + b
-        case 'RESTA':
-          return a - b
-        case 'MULTIPLICACION':
+      if (nodo.lexema.tipo === 'SUMA') {
+        return a + b
+      } else if (nodo.lexema.tipo === 'RESTA' && typeof a === 'number' && typeof b === 'number') {
+        return a - b
+      } else if (nodo.lexema.tipo === 'MULTIPLICACION') {
+        if (typeof a === 'number' && typeof b === 'number') {
           return a * b
-        case 'DIVISION':
+        } else if (typeof a === 'string' && typeof b === 'number') {
+          return a.repeat(b)
+        }
+      } else if (nodo.lexema.tipo === 'DIVISION') {
+        if (typeof a === 'number' && typeof b === 'number') {
           if (b === 0) {
             throw this.generarError(ErrorEjecucion, 'División por cero', nodo)
           }
           return a / b
-        case 'DIVISION_ENTERA':
+        } else if (typeof a === 'string' && typeof b === 'string') {
+          return a.split(b)
+        }
+      } else if (nodo.lexema.tipo === 'DIVISION_ENTERA') {
+        if (typeof a === 'number' && typeof b === 'number') {
           if (b === 0) {
             throw this.generarError(ErrorEjecucion, 'División por cero', nodo)
           }
           return Math.floor(a / b)
-        case 'MODULO':
+        }
+      } else if (nodo.lexema.tipo === 'MODULO') {
+        if (typeof a === 'number' && typeof b === 'number') {
           if (b === 0) {
             throw this.generarError(ErrorEjecucion, 'División por cero', nodo)
           }
           return a % b
-        case 'EXPONENTE':
+        }
+      } else if (nodo.lexema.tipo === 'EXPONENTE') {
+        if (typeof a === 'number' && typeof b === 'number') {
           return a ** b
+        }
       }
+      throw this.generarError(ErrorEjecucion, 'Operación no soportada', nodo)
     }
-    throw this.generarError(ErrorEjecucion, 'Operación no soportada', nodo)
   }
 
   private evaluarHoja (nodo: Nodo): number {

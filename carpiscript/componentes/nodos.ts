@@ -10,6 +10,7 @@ export class Nodo {
 
 export class NodoUnario extends Nodo {}
 export class NodoNumero extends NodoUnario {}
+export class NodoCadena extends NodoUnario {}
 export class NodoIdentificador extends NodoUnario {}
 
 export class NodoOperacionUnaria extends NodoUnario {

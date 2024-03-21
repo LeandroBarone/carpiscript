@@ -19,7 +19,9 @@ try {
 
 try {
   const resultado = ejecutar(codigo)
-  console.log(resultado)
+  if (resultado !== undefined) {
+    console.log(resultado)
+  }
 } catch (error) {
   if (error instanceof ErrorCarpiscript) {
     console.log(error.trazo)

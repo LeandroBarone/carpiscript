@@ -31,6 +31,7 @@ precioPorDocena = 6001
 precioUnitario = precioPorDocena // 12  # División entera
 impuestos = 21
 precioFinal = precioUnitario * (1 + impuestos / 100)
+imprimir("El precio final con " + impuestos + "% de impuestos es $" + precioFinal)
 
 ```
-Salida: 605
+Salida: El precio final con 21% de impuestos es $605

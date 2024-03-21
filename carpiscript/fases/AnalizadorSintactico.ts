@@ -1,13 +1,14 @@
 import { type Lexema } from '../componentes/Lexema'
-import { type Nodo, NodoOperacionUnaria, NodoOperacionBinaria, NodoNumero, NodoIdentificador } from '../componentes/nodos'
+import { type Nodo, NodoOperacionUnaria, NodoOperacionBinaria, NodoNumero, NodoIdentificador, NodoCadena } from '../componentes/nodos'
 import { ErrorSintactico } from '../componentes/errores'
 import { type Sentencia } from '../componentes/Sentencia'
 import { type Bloque } from '../componentes/Bloque'
 
+const FUNCIONES = ['IMPRIMIR']
 const UNARIOS = ['SUMA', 'RESTA']
 const EXPRESIONES = ['SUMA', 'RESTA']
 const TERMINOS = ['MULTIPLICACION', 'DIVISION', 'DIVISION_ENTERA', 'MODULO', 'EXPONENTE']
-const FACTORES = ['ENTERO', 'FLOTANTE']
+const FACTORES = ['ENTERO', 'FLOTANTE', 'CADENA']
 
 export class AnalizadorSintactico {
   debug: boolean = false
@@ -118,8 +119,8 @@ export class AnalisisSintactico {
       throw this.generarError(ErrorSintactico, 'Se esperaba un operando')
     }
 
-    if (UNARIOS.includes(this.lexema.tipo)) {
-      // Procesar operación unaria (número negativo o positivo)
+    if (UNARIOS.includes(this.lexema.tipo) || FUNCIONES.includes(this.lexema.tipo)) {
+      // Procesar operación unaria
       const operacion = this.lexema
       this.avanzar()
       const nodo = this.procesarFactor()
@@ -136,9 +137,15 @@ export class AnalisisSintactico {
       return nodo
     } else if (FACTORES.includes(this.lexema.tipo)) {
       // Procesar número
-      const nodo = new NodoNumero(this.lexema)
-      this.avanzar()
-      return nodo
+      if (this.lexema.tipo === 'ENTERO' || this.lexema.tipo === 'FLOTANTE') {
+        const nodo = new NodoNumero(this.lexema)
+        this.avanzar()
+        return nodo
+      } else if (this.lexema.tipo === 'CADENA') {
+        const nodo = new NodoCadena(this.lexema)
+        this.avanzar()
+        return nodo
+      }
     } else if (this.lexema.tipo === 'IDENTIFICADOR') {
       // Procesar identificador
       const nodo = new NodoIdentificador(this.lexema)
