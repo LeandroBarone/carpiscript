@@ -6,7 +6,7 @@ import { type Bloque } from '../componentes/Bloque'
 
 const UNARIOS = ['SUMA', 'RESTA']
 const EXPRESIONES = ['SUMA', 'RESTA']
-const TERMINOS = ['MULTIPLICACION', 'DIVISION', 'DIVISION_ENTERA', 'EXPONENTE']
+const TERMINOS = ['MULTIPLICACION', 'DIVISION', 'DIVISION_ENTERA', 'MODULO', 'EXPONENTE']
 const FACTORES = ['ENTERO', 'FLOTANTE']
 
 export class AnalizadorSintactico {
@@ -45,6 +45,9 @@ export class AnalisisSintactico {
     this.nLexema++
     this.lexema = this.nLexema < this.sentencia.length ? this.sentencia[this.nLexema] : null
     this.siguienteLexema = this.nLexema + 1 < this.sentencia.length ? this.sentencia[this.nLexema + 1] : null
+    if (this.lexema?.tipo == 'COMENTARIO') {
+      this.lexema = null
+    }
   }
 
   analizar (): Nodo {

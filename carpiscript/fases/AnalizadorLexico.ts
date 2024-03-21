@@ -67,6 +67,9 @@ export class AnalisisLexico {
       } else if (this.esAlfabetico(this.caracter)) {
         sentencia.push(this.procesarIdentificador())
         continue
+      } else if (this.caracter === '#') {
+        sentencia.push(this.procesarComentario())
+        continue
       } else if (this.caracter === '=') {
         if (this.caracterSiguiente === '=') {
           sentencia.push(this.crearLexema('IGUAL_QUE'))
@@ -79,8 +82,7 @@ export class AnalisisLexico {
       } else if (this.caracter === ')') {
         sentencia.push(this.crearLexema('PARENTESIS_DER'))
       } else if (this.caracter === '%') {
-        sentencia.push(this.crearLexema('DIVISION'))
-        sentencia.push(this.crearLexema('ENTERO', 100))
+        sentencia.push(this.crearLexema('MODULO'))
       } else if (this.caracter === '+') {
         sentencia.push(this.crearLexema('SUMA'))
       } else if (this.caracter === '-') {
@@ -155,6 +157,19 @@ export class AnalisisLexico {
     } else {
       return this.crearLexema('IDENTIFICADOR', id, nLineaInicial, nColumnaInicial)
     }
+  }
+
+  private procesarComentario (): Lexema {
+    let comentario = ''
+    const nLineaInicial = this.nLinea
+    const nColumnaInicial = this.nColumna
+
+    while (!this.fin()) {
+      comentario += this.caracter
+      this.avanzar()
+    }
+
+    return this.crearLexema('COMENTARIO', comentario, nLineaInicial, nColumnaInicial)
   }
 
   private fin (): boolean {

@@ -1,4 +1,4 @@
 precioPorDocena = 6001
-precioUnitario = precioPorDocena // 12
-impuestos = 21%
-precioFinal = precioUnitario + precioUnitario * impuestos
+precioUnitario = precioPorDocena // 12  # División entera
+impuestos = 21
+precioFinal = precioUnitario * (1 + impuestos / 100)

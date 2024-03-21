@@ -28,8 +28,9 @@ console.log(ejecutar('(1+2)*3'))
 
 ```python
 precioPorDocena = 6001
-precioUnitario = precioPorDocena // 12
-impuestos = 21%
-precioFinal = precio + precio * impuestos
+precioUnitario = precioPorDocena // 12  # División entera
+impuestos = 21
+precioFinal = precioUnitario * (1 + impuestos / 100)
+
 ```
 Salida: 605

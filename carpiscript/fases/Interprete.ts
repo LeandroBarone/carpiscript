@@ -59,6 +59,11 @@ export class Interprete {
             throw this.generarError(ErrorEjecucion, 'División por cero', nodo)
           }
           return Math.floor(a / b)
+        case 'MODULO':
+          if (b === 0) {
+            throw this.generarError(ErrorEjecucion, 'División por cero', nodo)
+          }
+          return a % b
         case 'EXPONENTE':
           return a ** b
       }
