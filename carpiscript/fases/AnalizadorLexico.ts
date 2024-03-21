@@ -1,54 +1,104 @@
 import { Lexema } from '../componentes/Lexema'
 import { ErrorLexico } from '../componentes/errores'
 import { Codigo } from '../componentes/Codigo'
+import { type Sentencia } from '../componentes/Sentencia'
+
+const PALABRAS_CLAVE: string[] = []
 
 export class AnalizadorLexico {
-  procesar (texto: string): Lexema[] {
+  debug: boolean = false
+
+  constructor (debug: boolean = false) {
+    this.debug = debug
+  }
+
+  procesar (texto: string): Sentencia[] {
     if (texto.length === 0) {
       throw new Error('El código no puede estar vacío')
     }
 
-    const analisis = new AnalisisLexico(texto)
+    const analisis = new AnalisisLexico(texto, this.debug)
     return analisis.analizar()
   }
 }
 
 export class AnalisisLexico {
-  private readonly codigo: Codigo
-  private caracter: string
-  private posicion: number
-  private nLinea: number
-  private nColumna: number
+  debug: boolean = false
+  codigo: Codigo
+  linea: string
+  caracter: string | null = null
+  caracterSiguiente: string | null = null
+  nLinea: number
+  nColumna: number
 
-  constructor (texto: string) {
+  constructor (texto: string, debug: boolean = false) {
+    this.debug = debug
     this.codigo = new Codigo(texto)
-    this.caracter = texto[0]
-    this.posicion = 0
+    this.linea = ''
+    this.caracter = ''
+    this.caracterSiguiente = ''
     this.nLinea = 0
     this.nColumna = 0
   }
 
-  analizar (): Lexema[] {
-    const lexemas: Lexema[] = []
+  analizar (): Sentencia[] {
+    const lineas = this.codigo.texto.split('\n')
+
+    const sentencias = lineas.map((linea, i) => {
+      this.linea = linea
+      this.nLinea = i
+      this.nColumna = -1
+      this.avanzar()
+      return this.analizarLinea()
+    })
+
+    return sentencias
+  }
+
+  private analizarLinea (): Sentencia {
+    const sentencia: Sentencia = []
 
     while (!this.fin()) {
       if (this.esEspacio(this.caracter)) {
-        // Ignorar espacios
+        // No hacer nada
       } else if (this.esDigito(this.caracter)) {
-        lexemas.push(this.procesarNumero())
+        sentencia.push(this.procesarNumero())
         continue
+      } else if (this.esAlfabetico(this.caracter)) {
+        sentencia.push(this.procesarIdentificador())
+        continue
+      } else if (this.caracter === '=') {
+        if (this.caracterSiguiente === '=') {
+          sentencia.push(this.crearLexema('IGUAL_QUE'))
+          this.avanzar()
+        } else {
+          sentencia.push(this.crearLexema('ASIGNACION'))
+        }
       } else if (this.caracter === '(') {
-        lexemas.push(this.crearLexema('PARENTESIS_IZQ'))
+        sentencia.push(this.crearLexema('PARENTESIS_IZQ'))
       } else if (this.caracter === ')') {
-        lexemas.push(this.crearLexema('PARENTESIS_DER'))
+        sentencia.push(this.crearLexema('PARENTESIS_DER'))
+      } else if (this.caracter === '%') {
+        sentencia.push(this.crearLexema('DIVISION'))
+        sentencia.push(this.crearLexema('ENTERO', 100))
       } else if (this.caracter === '+') {
-        lexemas.push(this.crearLexema('SUMA'))
+        sentencia.push(this.crearLexema('SUMA'))
       } else if (this.caracter === '-') {
-        lexemas.push(this.crearLexema('RESTA'))
+        sentencia.push(this.crearLexema('RESTA'))
       } else if (this.caracter === '*') {
-        lexemas.push(this.crearLexema('MULTIPLICACION'))
+        if (this.caracterSiguiente === '*') {
+          sentencia.push(this.crearLexema('EXPONENTE'))
+          this.avanzar()
+        } else {
+          sentencia.push(this.crearLexema('MULTIPLICACION'))
+        }
       } else if (this.caracter === '/') {
-        lexemas.push(this.crearLexema('DIVISION'))
+        if (this.caracterSiguiente === '/') {
+          sentencia.push(this.crearLexema('DIVISION_ENTERA'))
+          this.avanzar()
+        } else {
+          sentencia.push(this.crearLexema('DIVISION'))
+        }
       } else {
         throw this.generarError(ErrorLexico, 'Caracter inválido: ' + this.caracter)
       }
@@ -56,23 +106,13 @@ export class AnalisisLexico {
       this.avanzar()
     }
 
-    return lexemas
+    return sentencia
   }
 
   private avanzar (): void {
-    this.posicion++
     this.nColumna++
-
-    if (this.caracter === '\n') {
-      this.nLinea++
-      this.nColumna = 0
-    }
-
-    if (this.fin()) {
-      return
-    }
-
-    this.caracter = this.codigo.texto[this.posicion]
+    this.caracter = this.nColumna < this.linea.length ? this.linea[this.nColumna] : null
+    this.caracterSiguiente = this.nColumna + 1 < this.linea.length ? this.linea[this.nColumna + 1] : null
   }
 
   private procesarNumero (): Lexema {
@@ -100,19 +140,40 @@ export class AnalisisLexico {
     }
   }
 
+  private procesarIdentificador (): Lexema {
+    let id = ''
+    const nLineaInicial = this.nLinea
+    const nColumnaInicial = this.nColumna
+
+    while (!this.fin() && (this.esAlfabetico(this.caracter) || this.esDigito(this.caracter))) {
+      id += this.caracter
+      this.avanzar()
+    }
+
+    if (PALABRAS_CLAVE.includes(id)) {
+      return this.crearLexema(id.toUpperCase(), null, nLineaInicial, nColumnaInicial)
+    } else {
+      return this.crearLexema('IDENTIFICADOR', id, nLineaInicial, nColumnaInicial)
+    }
+  }
+
   private fin (): boolean {
-    return this.posicion >= this.codigo.texto.length
+    return this.nColumna >= this.linea.length
   }
 
-  private esEspacio (car: string): boolean {
-    return /\s/.test(car)
+  private esEspacio (car: string | null): boolean {
+    return (car !== null) ? /\s/.test(car) : false
   }
 
-  private esDigito (car: string): boolean {
-    return /^[0-9]$/.test(car)
+  private esDigito (car: string | null): boolean {
+    return (car !== null) ? /^[0-9]$/.test(car) : false
   }
 
-  private crearLexema (tipo: string, valor: number | null = null, nLinea: number | null = null, nColumna: number | null = null): Lexema {
+  private esAlfabetico (car: string | null): boolean {
+    return (car !== null) ? /^[a-zA-Z]$/.test(car) : false
+  }
+
+  private crearLexema (tipo: string, valor: number | string | null = null, nLinea: number | null = null, nColumna: number | null = null): Lexema {
     if (nLinea === null) nLinea = this.nLinea
     if (nColumna === null) nColumna = this.nColumna
     return new Lexema(tipo, valor, this.codigo, nLinea, nColumna)

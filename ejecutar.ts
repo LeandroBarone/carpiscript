@@ -22,12 +22,11 @@ try {
   console.log(resultado)
 } catch (error) {
   if (error instanceof ErrorCarpiscript) {
-    console.error(error.trazo)
+    console.log(error.trazo)
   } else if (error instanceof Error) {
-    console.error(`${error.name}: ${error.message}`)
-  }
-  else {
-    console.error(error)
+    console.log(`${error.name}: ${error.message}`)
+  } else {
+    console.log(error)
   }
   process.exit(1)
 }
