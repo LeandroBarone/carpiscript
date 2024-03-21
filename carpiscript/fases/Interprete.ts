@@ -1,37 +1,48 @@
-import { type Nodo, NodoUnario, NodoOperacionUnaria, NodoOperacionBinaria, NodoIdentificador, NodoNumero, NodoCadena } from '../componentes/nodos'
+import { type Nodo, NodoUnario, NodoOperacionUnaria, NodoOperacionBinaria, NodoIdentificador } from '../componentes/nodos'
 import { ErrorEjecucion } from '../componentes/errores'
 import { Contexto } from '../componentes/Contexto'
 import { type Bloque } from '../componentes/Bloque'
+import { Ingresar } from '../componentes/Ingresar'
+
+const ingresar = new Ingresar()
 
 export class Interprete {
-  procesar (bloque: Bloque): number {
+  async procesar (bloque: Bloque): Promise<any> {
     const contexto = new Contexto()
-    const resultado = bloque.map(sentencia => {
-      return this.evaluarNodo(sentencia, contexto)
-    })
-    return resultado[resultado.length - 1]
+    const resultados: any[] = []
+    for (const sentencia of bloque) {
+      resultados.push(await this.evaluarNodo(sentencia, contexto))
+    }
+    return resultados[resultados.length - 1]
   }
 
-  private evaluarNodo (nodo: Nodo, contexto: Contexto): any {
+  private async evaluarNodo (nodo: Nodo, contexto: Contexto): Promise<any> {
     if (nodo instanceof NodoUnario) {
       if (nodo instanceof NodoIdentificador) {
-        return contexto.obtenerVariable(nodo.lexema.valor as string)
+        const valor = contexto.obtenerVariable(nodo.lexema.valor as string)
+        return valor
       } else if (nodo instanceof NodoOperacionUnaria) {
         switch (nodo.lexema.tipo) {
           case 'SUMA':
-            return this.evaluarNodo(nodo.nodo, contexto)
+            return await this.evaluarNodo(nodo.nodo, contexto)
           case 'RESTA':
-            return -this.evaluarNodo(nodo.nodo, contexto)
+            return -(await this.evaluarNodo(nodo.nodo, contexto))
+          case 'NUMERO':
+            return parseFloat(await this.evaluarNodo(nodo.nodo, contexto) as string)
           case 'IMPRIMIR':
-            console.log(this.evaluarNodo(nodo.nodo, contexto))
+            console.log(await this.evaluarNodo(nodo.nodo, contexto))
             return undefined
+          case 'INGRESAR':
+            return await ingresar.ingresar(await this.evaluarNodo(nodo.nodo, contexto) + ': ')
+          case 'INGRESARNUMERO':
+            return parseFloat(await ingresar.ingresar(await this.evaluarNodo(nodo.nodo, contexto) + ': '))
         }
       } else {
         return nodo.lexema.valor
       }
     } else if (nodo instanceof NodoOperacionBinaria) {
-      const a = this.evaluarNodo(nodo.nodoA, contexto)
-      const b = this.evaluarNodo(nodo.nodoB, contexto)
+      const a = await this.evaluarNodo(nodo.nodoA, contexto)
+      const b = await this.evaluarNodo(nodo.nodoB, contexto)
 
       if (nodo.lexema.tipo === 'ASIGNACION') {
         if (!(nodo.nodoA instanceof NodoIdentificador)) {
@@ -85,10 +96,6 @@ export class Interprete {
       }
       throw this.generarError(ErrorEjecucion, 'Operación no soportada', nodo)
     }
-  }
-
-  private evaluarHoja (nodo: Nodo): number {
-    return nodo.lexema.valor
   }
 
   private generarError (Cls: any, mensaje: string, nodo: Nodo): ErrorEjecucion {

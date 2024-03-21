@@ -3,10 +3,16 @@ import { ErrorLexico } from '../componentes/errores'
 import { Codigo } from '../componentes/Codigo'
 import { type Sentencia } from '../componentes/Sentencia'
 
-const PALABRAS_CLAVE: string[] = ['imprimir']
+const PALABRAS_CLAVE: string[] = ['imprimir', 'ingresar', 'ingresarNumero', 'numero']
 
 export class AnalizadorLexico {
-  debug: boolean = false
+  debug: boolean
+  codigo: Codigo = new Codigo('')
+  linea: string = ''
+  caracter: string | null = null
+  caracterSiguiente: string | null = null
+  nLinea: number = 0
+  nColumna: number = 0
 
   constructor (debug: boolean = false) {
     this.debug = debug
@@ -17,31 +23,8 @@ export class AnalizadorLexico {
       throw new Error('El código no puede estar vacío')
     }
 
-    const analisis = new AnalisisLexico(texto, this.debug)
-    return analisis.analizar()
-  }
-}
-
-export class AnalisisLexico {
-  debug: boolean = false
-  codigo: Codigo
-  linea: string
-  caracter: string | null = null
-  caracterSiguiente: string | null = null
-  nLinea: number
-  nColumna: number
-
-  constructor (texto: string, debug: boolean = false) {
-    this.debug = debug
     this.codigo = new Codigo(texto)
-    this.linea = ''
-    this.caracter = ''
-    this.caracterSiguiente = ''
-    this.nLinea = 0
-    this.nColumna = 0
-  }
 
-  analizar (): Sentencia[] {
     const lineas = this.codigo.texto.split('\n')
 
     const sentencias = lineas.map((linea, i) => {

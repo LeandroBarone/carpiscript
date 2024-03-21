@@ -17,18 +17,20 @@ try {
   process.exit(1)
 }
 
-try {
-  const resultado = ejecutar(codigo)
-  if (resultado !== undefined) {
-    console.log(resultado)
-  }
-} catch (error) {
-  if (error instanceof ErrorCarpiscript) {
-    console.log(error.trazo)
-  } else if (error instanceof Error) {
-    console.log(`${error.name}: ${error.message}`)
-  } else {
-    console.log(error)
-  }
-  process.exit(1)
-}
+ejecutar(codigo)
+  .then(resultado => {
+    if (resultado !== undefined) {
+      console.log(resultado)
+    }
+    process.exit(0)
+  })
+  .catch(error => {
+    if (error instanceof ErrorCarpiscript) {
+      console.log(error.trazo)
+    } else if (error instanceof Error) {
+      console.log(`${error.name}: ${error.message}`)
+    } else {
+      console.log(error)
+    }
+    process.exit(1)
+  })

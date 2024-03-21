@@ -4,7 +4,7 @@ import { ErrorSintactico } from '../componentes/errores'
 import { type Sentencia } from '../componentes/Sentencia'
 import { type Bloque } from '../componentes/Bloque'
 
-const FUNCIONES = ['IMPRIMIR']
+const FUNCIONES = ['IMPRIMIR', 'INGRESAR', 'INGRESARNUMERO', 'NUMERO']
 const UNARIOS = ['SUMA', 'RESTA']
 const EXPRESIONES = ['SUMA', 'RESTA']
 const TERMINOS = ['MULTIPLICACION', 'DIVISION', 'DIVISION_ENTERA', 'MODULO', 'EXPONENTE']
@@ -46,7 +46,7 @@ export class AnalisisSintactico {
     this.nLexema++
     this.lexema = this.nLexema < this.sentencia.length ? this.sentencia[this.nLexema] : null
     this.siguienteLexema = this.nLexema + 1 < this.sentencia.length ? this.sentencia[this.nLexema + 1] : null
-    if (this.lexema?.tipo == 'COMENTARIO') {
+    if (this.lexema?.tipo === 'COMENTARIO') {
       this.lexema = null
     }
   }
@@ -115,7 +115,7 @@ export class AnalisisSintactico {
       console.log('Procesando factor', this.lexema?.tipo, this.lexema?.valor)
     }
 
-    if (!this.lexema) {
+    if (this.lexema === null) {
       throw this.generarError(ErrorSintactico, 'Se esperaba un operando')
     }
 
@@ -157,7 +157,7 @@ export class AnalisisSintactico {
   }
 
   generarError (Cls: any, mensaje: string): Error {
-    if (!this.lexema) {
+    if (this.lexema === null) {
       return new Error(mensaje)
     } else {
       return new Cls(this.lexema.codigo, this.lexema.nLinea, this.lexema.nColumna, mensaje)

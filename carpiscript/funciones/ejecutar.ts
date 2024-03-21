@@ -2,7 +2,7 @@ import { AnalizadorLexico } from '../fases/AnalizadorLexico'
 import { AnalizadorSintactico } from '../fases/AnalizadorSintactico'
 import { Interprete } from '../fases/Interprete'
 
-export function ejecutar (codigo: string, debug: boolean = false): number {
+export async function ejecutar (codigo: string, debug: boolean = false): Promise<any> {
   const analizadorLexico = new AnalizadorLexico()
   const sentencias = analizadorLexico.procesar(codigo)
   if (debug) {
@@ -16,7 +16,7 @@ export function ejecutar (codigo: string, debug: boolean = false): number {
   }
 
   const interprete = new Interprete()
-  const resultado = interprete.procesar(bloque)
+  const resultado = await interprete.procesar(bloque)
 
   return resultado
 }

@@ -27,11 +27,11 @@ console.log(ejecutar('(1+2)*3'))
 ## Sintaxis
 
 ```python
-precioPorDocena = 6001
+precioPorDocena = ingresarNumero("Precio por docena")  # => asumiendo 6000
 precioUnitario = precioPorDocena // 12  # División entera
-impuestos = 21
+impuestos = 10
 precioFinal = precioUnitario * (1 + impuestos / 100)
 imprimir("El precio final con " + impuestos + "% de impuestos es $" + precioFinal)
 
 ```
-Salida: El precio final con 21% de impuestos es $605
+Salida: El precio final con 10% de impuestos es $550
