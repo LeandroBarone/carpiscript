@@ -3,7 +3,7 @@ import { ErrorLexico } from '../componentes/errores'
 import { Codigo } from '../componentes/Codigo'
 import { type Sentencia } from '../componentes/Sentencia'
 
-const PALABRAS_CLAVE: string[] = ['imprimir', 'ingresar', 'ingresarNumero', 'numero']
+const PALABRAS_CLAVE: string[] = ['imprimir', 'ingresar', 'ingresarNumero', 'numero', 'si']
 
 export class AnalizadorLexico {
   debug: boolean
@@ -53,6 +53,10 @@ export class AnalizadorLexico {
       } else if (this.esAlfabetico(this.caracter)) {
         sentencia.push(this.procesarIdentificador())
         continue
+      } else if (this.caracter === '{') {
+        sentencia.push(this.crearLexema('INICIO_BLOQUE'))
+      } else if (this.caracter === '}') {
+        sentencia.push(this.crearLexema('FIN_BLOQUE'))
       } else if (this.caracter === '#') {
         sentencia.push(this.procesarComentario())
         continue
@@ -62,6 +66,20 @@ export class AnalizadorLexico {
           this.avanzar()
         } else {
           sentencia.push(this.crearLexema('ASIGNACION'))
+        }
+      } else if (this.caracter === '>') {
+        if (this.caracterSiguiente === '=') {
+          sentencia.push(this.crearLexema('MAYOR_IGUAL_QUE'))
+          this.avanzar()
+        } else {
+          sentencia.push(this.crearLexema('MAYOR_QUE'))
+        }
+      } else if (this.caracter === '<') {
+        if (this.caracterSiguiente === '=') {
+          sentencia.push(this.crearLexema('MENOR_IGUAL_QUE'))
+          this.avanzar()
+        } else {
+          sentencia.push(this.crearLexema('MENOR_QUE'))
         }
       } else if (this.caracter === '(') {
         sentencia.push(this.crearLexema('PARENTESIS_IZQ'))
@@ -197,7 +215,7 @@ export class AnalizadorLexico {
   }
 
   private esAlfabetico (car: string | null): boolean {
-    return (car !== null) ? /^[a-zA-Z]$/.test(car) : false
+    return (car !== null) ? /^[a-zA-Z_]$/.test(car) : false
   }
 
   private crearLexema (tipo: string, valor: number | string | null = null, nLinea: number | null = null, nColumna: number | null = null): Lexema {

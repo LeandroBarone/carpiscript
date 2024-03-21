@@ -32,6 +32,10 @@ precioUnitario = precioPorDocena // 12  # División entera
 impuestos = 10
 precioFinal = precioUnitario * (1 + impuestos / 100)
 imprimir("El precio final con " + impuestos + "% de impuestos es $" + precioFinal)
+si (precioFinal > 1000) {
+  imprimir('Precio demasiado alto')
+}
+
 
 ```
 Salida: El precio final con 10% de impuestos es $550

@@ -1,15 +1,24 @@
 export class Contexto {
-  private readonly contexto: Map<string, any>
+  private readonly padre: Contexto | null
+  private readonly tabla: Map<string, any>
 
-  constructor () {
-    this.contexto = new Map<string, any>()
+  constructor (padre: Contexto | null = null) {
+    this.padre = padre
+    this.tabla = new Map<string, any>()
   }
 
   asignarVariable (nombre: string, valor: any): void {
-    this.contexto.set(nombre, valor)
+    this.tabla.set(nombre, valor)
   }
 
   obtenerVariable (nombre: string): any {
-    return this.contexto.get(nombre)
+    const local = this.tabla.get(nombre)
+    if (local !== undefined) {
+      return local
+    } else if (this.padre !== null) {
+      return this.padre.obtenerVariable(nombre)
+    } else {
+      return undefined
+    }
   }
 }

@@ -1,13 +1,13 @@
 import { type Lexema } from '../componentes/Lexema'
-import { type Nodo, NodoOperacionUnaria, NodoOperacionBinaria, NodoNumero, NodoIdentificador, NodoCadena } from '../componentes/nodos'
+import { type Nodo, NodoOperacionUnaria, NodoOperacionBinaria, NodoNumero, NodoIdentificador, NodoCadena, NodoInicioBloque, NodoFinBloque } from '../componentes/nodos'
 import { ErrorSintactico } from '../componentes/errores'
 import { type Sentencia } from '../componentes/Sentencia'
 import { type Bloque } from '../componentes/Bloque'
 
-const FUNCIONES = ['IMPRIMIR', 'INGRESAR', 'INGRESARNUMERO', 'NUMERO']
-const UNARIOS = ['SUMA', 'RESTA']
-const EXPRESIONES = ['SUMA', 'RESTA']
+const FUNCIONES = ['IMPRIMIR', 'INGRESAR', 'INGRESARNUMERO', 'NUMERO', 'SI']
+const EXPRESIONES = ['IGUAL_QUE', 'MAYOR_QUE', 'MAYOR_IGUAL_QUE', 'MENOR_QUE', 'MENOR_IGUAL_QUE', 'SUMA', 'RESTA']
 const TERMINOS = ['MULTIPLICACION', 'DIVISION', 'DIVISION_ENTERA', 'MODULO', 'EXPONENTE']
+const UNARIOS = ['SUMA', 'RESTA']
 const FACTORES = ['ENTERO', 'FLOTANTE', 'CADENA']
 
 export class AnalizadorSintactico {
@@ -60,13 +60,23 @@ export class AnalisisSintactico {
       throw this.generarError(ErrorSintactico, 'Se esperaba una sentencia')
     }
 
+    if (this.lexema?.tipo === 'FIN_BLOQUE') {
+      const lexema = this.lexema
+      this.avanzar()
+      return new NodoFinBloque(lexema)
+    }
+
     let nodoA = this.procesarExpresion()
 
-    if (this.lexema?.tipo === 'ASIGNACION') {
-      const operacion = this.lexema
+    if (this.lexema?.tipo === 'INICIO_BLOQUE') {
+      const lexema = this.lexema
+      this.avanzar()
+      return new NodoInicioBloque(lexema, nodoA)
+    } else if (this.lexema?.tipo === 'ASIGNACION') {
+      const lexema = this.lexema
       this.avanzar()
       const nodoB = this.procesarExpresion()
-      nodoA = new NodoOperacionBinaria(nodoA, operacion, nodoB)
+      nodoA = new NodoOperacionBinaria(lexema, nodoA, nodoB)
     }
 
     if (this.lexema !== null) {
@@ -84,10 +94,10 @@ export class AnalisisSintactico {
     let nodoA = this.procesarTermino()
 
     while (this.lexema !== null && EXPRESIONES.includes(this.lexema.tipo)) {
-      const operacion = this.lexema
+      const lexema = this.lexema
       this.avanzar()
       const nodoB = this.procesarTermino()
-      nodoA = new NodoOperacionBinaria(nodoA, operacion, nodoB)
+      nodoA = new NodoOperacionBinaria(lexema, nodoA, nodoB)
     }
 
     return nodoA
@@ -101,10 +111,10 @@ export class AnalisisSintactico {
     let nodoA = this.procesarFactor()
 
     while (this.lexema !== null && TERMINOS.includes(this.lexema.tipo)) {
-      const operacion = this.lexema
+      const lexema = this.lexema
       this.avanzar()
       const nodoB = this.procesarFactor()
-      nodoA = new NodoOperacionBinaria(nodoA, operacion, nodoB)
+      nodoA = new NodoOperacionBinaria(lexema, nodoA, nodoB)
     }
 
     return nodoA

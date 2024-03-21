@@ -2,9 +2,11 @@ import { type Lexema } from './Lexema'
 
 export class Nodo {
   lexema: Lexema
+  tipo: string
 
   constructor (lexema: Lexema) {
     this.lexema = lexema
+    this.tipo = this.constructor.name
   }
 }
 
@@ -16,8 +18,8 @@ export class NodoIdentificador extends NodoUnario {}
 export class NodoOperacionUnaria extends NodoUnario {
   nodo: Nodo
 
-  constructor (operacion: Lexema, nodo: Nodo) {
-    super(operacion)
+  constructor (lexema: Lexema, nodo: Nodo) {
+    super(lexema)
     this.nodo = nodo
   }
 }
@@ -26,9 +28,12 @@ export class NodoOperacionBinaria extends Nodo {
   nodoA: Nodo
   nodoB: Nodo
 
-  constructor (nodoA: Nodo, operacion: Lexema, nodoB: Nodo) {
-    super(operacion)
+  constructor (lexema: Lexema, nodoA: Nodo, nodoB: Nodo) {
+    super(lexema)
     this.nodoA = nodoA
     this.nodoB = nodoB
   }
 }
+
+export class NodoInicioBloque extends NodoOperacionUnaria {}
+export class NodoFinBloque extends Nodo {}

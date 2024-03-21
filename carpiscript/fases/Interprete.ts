@@ -1,4 +1,4 @@
-import { type Nodo, NodoUnario, NodoOperacionUnaria, NodoOperacionBinaria, NodoIdentificador } from '../componentes/nodos'
+import { type Nodo, NodoUnario, NodoOperacionUnaria, NodoOperacionBinaria, NodoIdentificador, NodoInicioBloque, NodoFinBloque } from '../componentes/nodos'
 import { ErrorEjecucion } from '../componentes/errores'
 import { Contexto } from '../componentes/Contexto'
 import { type Bloque } from '../componentes/Bloque'
@@ -7,13 +7,45 @@ import { Ingresar } from '../componentes/Ingresar'
 const ingresar = new Ingresar()
 
 export class Interprete {
+  bloque: Bloque = []
+  nNodo: number = -1
+  contextoGlobal: Contexto = new Contexto()
+
   async procesar (bloque: Bloque): Promise<any> {
-    const contexto = new Contexto()
-    const resultados: any[] = []
-    for (const sentencia of bloque) {
-      resultados.push(await this.evaluarNodo(sentencia, contexto))
+    this.bloque = bloque
+    this.nNodo = -1
+    this.contextoGlobal = new Contexto()
+    return await this.procesarBloque(this.contextoGlobal)
+  }
+
+  async procesarBloque (contexto: Contexto, saltar: boolean = false): Promise<any> {
+    const contextoLocal = new Contexto(contexto)
+
+    while (this.avanzar()) {
+      if (saltar) {
+        continue
+      }
+
+      const nodo = this.bloque[this.nNodo]
+
+      if (nodo instanceof NodoFinBloque) {
+        return
+      } else if (nodo instanceof NodoInicioBloque) {
+        if (nodo.nodo instanceof NodoOperacionUnaria && nodo.nodo.lexema.tipo === 'SI') {
+          const resultado = await this.evaluarNodo(nodo, contextoLocal)
+          await this.procesarBloque(contextoLocal, !(resultado as boolean))
+        } else {
+          throw this.generarError(ErrorEjecucion, 'Bloque no soportado', nodo)
+        }
+      } else {
+        await this.evaluarNodo(nodo, contextoLocal)
+      }
     }
-    return resultados[resultados.length - 1]
+  }
+
+  private avanzar (): boolean {
+    this.nNodo++
+    return this.nNodo < this.bloque.length
   }
 
   private async evaluarNodo (nodo: Nodo, contexto: Contexto): Promise<any> {
@@ -36,6 +68,10 @@ export class Interprete {
             return await ingresar.ingresar(await this.evaluarNodo(nodo.nodo, contexto) + ': ')
           case 'INGRESARNUMERO':
             return parseFloat(await ingresar.ingresar(await this.evaluarNodo(nodo.nodo, contexto) + ': '))
+          case 'INICIO_BLOQUE':
+            return await this.evaluarNodo(nodo.nodo, contexto)
+          case 'SI':
+            return await this.evaluarNodo(nodo.nodo, contexto)
         }
       } else {
         return nodo.lexema.valor
@@ -56,7 +92,17 @@ export class Interprete {
         throw this.generarError(ErrorEjecucion, 'Error al evaluar la operación', nodo)
       }
 
-      if (nodo.lexema.tipo === 'SUMA') {
+      if (nodo.lexema.tipo === 'IGUAL_QUE') {
+        return a === b
+      } else if (nodo.lexema.tipo === 'MAYOR_QUE') {
+        return a > b
+      } else if (nodo.lexema.tipo === 'MAYOR_IGUAL_QUE') {
+        return a >= b
+      } else if (nodo.lexema.tipo === 'MENOR_QUE') {
+        return a < b
+      } else if (nodo.lexema.tipo === 'MENOR_IGUAL_QUE') {
+        return a <= b
+      } else if (nodo.lexema.tipo === 'SUMA') {
         return a + b
       } else if (nodo.lexema.tipo === 'RESTA' && typeof a === 'number' && typeof b === 'number') {
         return a - b
