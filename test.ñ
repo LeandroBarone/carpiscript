@@ -1,8 +1,14 @@
-precioPorDocena = ingresarNumero("Precio por docena")
-precioUnitario = precioPorDocena // 12  # División entera
-impuestos = 10
-precioFinal = precioUnitario * (1 + impuestos / 100)
-imprimir("El precio final con " + impuestos + "% de impuestos es $" + precioFinal)
-si (precioFinal > 1000) {
-  imprimir('Precio demasiado alto')
+precio = 99999
+si (precio < 100) {
+  imprimir('Precio 2 cifras')
 }
+sino (precio < 1000) {
+  imprimir('Precio 3 cifras')
+}
+sino (precio < 10000) {
+  imprimir('Precio 4 cifras')
+}
+sino {
+  imprimir('Precio 5 o más cifras')
+}
+imprimir('listo')

@@ -1,10 +1,11 @@
 import { type Lexema } from '../componentes/Lexema'
-import { type Nodo, NodoOperacionUnaria, NodoOperacionBinaria, NodoNumero, NodoIdentificador, NodoCadena, NodoInicioBloque, NodoFinBloque } from '../componentes/nodos'
+import { Nodo, NodoOperacionUnaria, NodoOperacionBinaria, NodoNumero, NodoIdentificador, NodoCadena, NodoInicioBloque, NodoFinBloque, NodoNulo } from '../componentes/nodos'
 import { ErrorSintactico } from '../componentes/errores'
 import { type Sentencia } from '../componentes/Sentencia'
 import { type Bloque } from '../componentes/Bloque'
 
-const FUNCIONES = ['IMPRIMIR', 'INGRESAR', 'INGRESARNUMERO', 'NUMERO', 'SI']
+const PALABRAS_CLAVE = ['SI', 'SINO', 'INICIO_BLOQUE', 'FIN_BLOQUE']
+const FUNCIONES = ['IMPRIMIR', 'INGRESAR', 'INGRESARNUMERO', 'NUMERO']
 const EXPRESIONES = ['IGUAL_QUE', 'MAYOR_QUE', 'MAYOR_IGUAL_QUE', 'MENOR_QUE', 'MENOR_IGUAL_QUE', 'SUMA', 'RESTA']
 const TERMINOS = ['MULTIPLICACION', 'DIVISION', 'DIVISION_ENTERA', 'MODULO', 'EXPONENTE']
 const UNARIOS = ['SUMA', 'RESTA']
@@ -58,12 +59,6 @@ export class AnalisisSintactico {
 
     if (this.lexema === null) {
       throw this.generarError(ErrorSintactico, 'Se esperaba una sentencia')
-    }
-
-    if (this.lexema?.tipo === 'FIN_BLOQUE') {
-      const lexema = this.lexema
-      this.avanzar()
-      return new NodoFinBloque(lexema)
     }
 
     let nodoA = this.procesarExpresion()
@@ -129,12 +124,30 @@ export class AnalisisSintactico {
       throw this.generarError(ErrorSintactico, 'Se esperaba un operando')
     }
 
-    if (UNARIOS.includes(this.lexema.tipo) || FUNCIONES.includes(this.lexema.tipo)) {
+    if (PALABRAS_CLAVE.includes(this.lexema.tipo)) {
+      // Condicionales, bucles, etc
+      const lexema = this.lexema
+      this.avanzar()
+
+      if (lexema.tipo === 'SI') {
+        const nodo = this.procesarExpresion()
+        return new NodoOperacionUnaria(lexema, nodo)
+      } else if (lexema.tipo === 'SINO') {
+        if (this.lexema?.tipo === 'PARENTESIS_IZQ') {
+          const nodo = this.procesarExpresion()
+          return new NodoOperacionUnaria(lexema, nodo)
+        } else {
+          return new NodoNulo(lexema)
+        }
+      } else if (lexema.tipo === 'FIN_BLOQUE') {
+        return new NodoFinBloque(lexema)
+      }
+    } else if (UNARIOS.includes(this.lexema.tipo) || FUNCIONES.includes(this.lexema.tipo)) {
       // Procesar operación unaria
-      const operacion = this.lexema
+      const lexema = this.lexema
       this.avanzar()
       const nodo = this.procesarFactor()
-      return new NodoOperacionUnaria(operacion, nodo)
+      return new NodoOperacionUnaria(lexema, nodo)
     } else if (this.lexema.tipo === 'PARENTESIS_IZQ') {
       // Procesar paréntesis con una expresión adentro
       this.avanzar()

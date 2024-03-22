@@ -3,7 +3,7 @@ import { ErrorLexico } from '../componentes/errores'
 import { Codigo } from '../componentes/Codigo'
 import { type Sentencia } from '../componentes/Sentencia'
 
-const PALABRAS_CLAVE: string[] = ['imprimir', 'ingresar', 'ingresarNumero', 'numero', 'si']
+const PALABRAS_CLAVE: string[] = ['imprimir', 'ingresar', 'ingresarNumero', 'numero', 'si', 'sino']
 
 export class AnalizadorLexico {
   debug: boolean

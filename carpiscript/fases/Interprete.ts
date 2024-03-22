@@ -1,4 +1,4 @@
-import { type Nodo, NodoUnario, NodoOperacionUnaria, NodoOperacionBinaria, NodoIdentificador, NodoInicioBloque, NodoFinBloque } from '../componentes/nodos'
+import { Nodo, NodoUnario, NodoOperacionUnaria, NodoOperacionBinaria, NodoIdentificador, NodoInicioBloque, NodoFinBloque, NodoNulo } from '../componentes/nodos'
 import { ErrorEjecucion } from '../componentes/errores'
 import { Contexto } from '../componentes/Contexto'
 import { type Bloque } from '../componentes/Bloque'
@@ -9,42 +9,72 @@ const ingresar = new Ingresar()
 export class Interprete {
   bloque: Bloque = []
   nNodo: number = -1
+  nodo: Nodo | null = null
+  siguienteNodo: Nodo | null = null
   contextoGlobal: Contexto = new Contexto()
 
   async procesar (bloque: Bloque): Promise<any> {
     this.bloque = bloque
     this.nNodo = -1
     this.contextoGlobal = new Contexto()
+    this.nodo = null
+    this.siguienteNodo = null
     return await this.procesarBloque(this.contextoGlobal)
   }
 
-  async procesarBloque (contexto: Contexto, saltar: boolean = false): Promise<any> {
+  async procesarBloque (contexto: Contexto, ejecutar: boolean = true): Promise<any> {
     const contextoLocal = new Contexto(contexto)
 
     while (this.avanzar()) {
-      if (saltar) {
+      if (this.nodo instanceof NodoFinBloque) {
+        return
+      }
+
+      if (!ejecutar) {
         continue
       }
 
-      const nodo = this.bloque[this.nNodo]
+      if (this.nodo instanceof NodoInicioBloque) {
+        let ejecutado: boolean = false
 
-      if (nodo instanceof NodoFinBloque) {
-        return
-      } else if (nodo instanceof NodoInicioBloque) {
-        if (nodo.nodo instanceof NodoOperacionUnaria && nodo.nodo.lexema.tipo === 'SI') {
-          const resultado = await this.evaluarNodo(nodo, contextoLocal)
-          await this.procesarBloque(contextoLocal, !(resultado as boolean))
+        if (this.nodo.nodo.lexema.tipo === 'SI') {
+          // SI
+          const verdadero = Boolean(await this.evaluarNodo(this.nodo.nodo, contextoLocal))
+          if (verdadero) {
+            await this.procesarBloque(contextoLocal)
+            ejecutado = true
+          } else {
+            await this.procesarBloque(contextoLocal, false)
+          }
+          // SINO
+          while (this.siguienteNodo instanceof NodoOperacionUnaria && this.siguienteNodo.nodo.lexema.tipo === 'SINO' && this.siguienteNodo.nodo instanceof NodoOperacionUnaria) {
+            this.avanzar()
+            const verdadero = Boolean(await this.evaluarNodo((this.nodo.nodo as NodoOperacionUnaria).nodo, contextoLocal))
+            if (verdadero && !ejecutado) {
+              await this.procesarBloque(contextoLocal)
+              ejecutado = true
+            } else {
+              await this.procesarBloque(contextoLocal, false)
+            }
+          }
+          // SINO
+          if (this.siguienteNodo instanceof NodoOperacionUnaria && this.siguienteNodo.nodo instanceof NodoNulo) {
+            this.avanzar()
+            await this.procesarBloque(contextoLocal, !ejecutado)
+          }
         } else {
-          throw this.generarError(ErrorEjecucion, 'Bloque no soportado', nodo)
+          throw this.generarError(ErrorEjecucion, 'Bloque no soportado', this.nodo)
         }
-      } else {
-        await this.evaluarNodo(nodo, contextoLocal)
+      } else if (this.nodo instanceof Nodo) {
+        await this.evaluarNodo(this.nodo, contextoLocal)
       }
     }
   }
 
   private avanzar (): boolean {
     this.nNodo++
+    this.nodo = this.nNodo < this.bloque.length ? this.bloque[this.nNodo] : null
+    this.siguienteNodo = this.nNodo + 1 < this.bloque.length ? this.bloque[this.nNodo + 1] : null
     return this.nNodo < this.bloque.length
   }
 
