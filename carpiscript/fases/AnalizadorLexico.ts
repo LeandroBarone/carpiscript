@@ -3,7 +3,7 @@ import { ErrorLexico } from '../componentes/errores'
 import { Codigo } from '../componentes/Codigo'
 import { type Sentencia } from '../componentes/Sentencia'
 
-const PALABRAS_CLAVE: string[] = ['imprimir', 'ingresar', 'ingresarNumero', 'numero', 'si', 'sino']
+const PALABRAS_CLAVE: string[] = ['imprimir', 'ingresar', 'ingresarNumero', 'entero', 'flotante', 'si', 'sino']
 
 export class AnalizadorLexico {
   debug: boolean
@@ -149,7 +149,11 @@ export class AnalizadorLexico {
     const nLineaInicial = this.nLinea
     const nColumnaInicial = this.nColumna
 
-    while (!this.fin() && (this.esDigito(this.caracter) || this.caracter === '.')) {
+    while (!this.fin() && (this.esDigito(this.caracter) || this.caracter === '.') || this.caracter === '_') {
+      if (this.caracter === '_') {
+        this.avanzar()
+        continue
+      }
       if (this.caracter === '.') {
         if (nPuntos > 0) {
           throw this.generarError(ErrorLexico, 'Número con múltiples puntos decimales')
@@ -162,9 +166,9 @@ export class AnalizadorLexico {
     }
 
     if (nPuntos > 0) {
-      return this.crearLexema('FLOTANTE', parseFloat(num), nLineaInicial, nColumnaInicial)
+      return this.crearLexema('NUMERO', parseFloat(num), nLineaInicial, nColumnaInicial)
     } else {
-      return this.crearLexema('ENTERO', parseInt(num), nLineaInicial, nColumnaInicial)
+      return this.crearLexema('NUMERO', parseInt(num), nLineaInicial, nColumnaInicial)
     }
   }
 

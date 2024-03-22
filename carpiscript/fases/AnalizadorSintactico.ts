@@ -1,15 +1,15 @@
 import { type Lexema } from '../componentes/Lexema'
-import { Nodo, NodoOperacionUnaria, NodoOperacionBinaria, NodoNumero, NodoIdentificador, NodoCadena, NodoInicioBloque, NodoFinBloque, NodoNulo } from '../componentes/nodos'
+import { Nodo, NodoOperacionUnaria, NodoOperacionBinaria, NodoNumero, NodoIdentificador, NodoCadena, NodoInicioBloque, NodoFinBloque, NodoNulo, NodoSi, NodoSinoSi, NodoSino } from '../componentes/nodos'
 import { ErrorSintactico } from '../componentes/errores'
 import { type Sentencia } from '../componentes/Sentencia'
 import { type Bloque } from '../componentes/Bloque'
 
 const PALABRAS_CLAVE = ['SI', 'SINO', 'INICIO_BLOQUE', 'FIN_BLOQUE']
-const FUNCIONES = ['IMPRIMIR', 'INGRESAR', 'INGRESARNUMERO', 'NUMERO']
+const FUNCIONES = ['IMPRIMIR', 'INGRESAR', 'INGRESARNUMERO', 'ENTERO', 'FLOTANTE']
 const EXPRESIONES = ['IGUAL_QUE', 'MAYOR_QUE', 'MAYOR_IGUAL_QUE', 'MENOR_QUE', 'MENOR_IGUAL_QUE', 'SUMA', 'RESTA']
 const TERMINOS = ['MULTIPLICACION', 'DIVISION', 'DIVISION_ENTERA', 'MODULO', 'EXPONENTE']
 const UNARIOS = ['SUMA', 'RESTA']
-const FACTORES = ['ENTERO', 'FLOTANTE', 'CADENA']
+const FACTORES = ['NUMERO', 'CADENA']
 
 export class AnalizadorSintactico {
   debug: boolean = false
@@ -64,9 +64,9 @@ export class AnalisisSintactico {
     let nodoA = this.procesarExpresion()
 
     if (this.lexema?.tipo === 'INICIO_BLOQUE') {
-      const lexema = this.lexema
+      // const lexema = this.lexema
       this.avanzar()
-      return new NodoInicioBloque(lexema, nodoA)
+      return nodoA
     } else if (this.lexema?.tipo === 'ASIGNACION') {
       const lexema = this.lexema
       this.avanzar()
@@ -131,13 +131,13 @@ export class AnalisisSintactico {
 
       if (lexema.tipo === 'SI') {
         const nodo = this.procesarExpresion()
-        return new NodoOperacionUnaria(lexema, nodo)
+        return new NodoSi(lexema, nodo)
       } else if (lexema.tipo === 'SINO') {
         if (this.lexema?.tipo === 'PARENTESIS_IZQ') {
           const nodo = this.procesarExpresion()
-          return new NodoOperacionUnaria(lexema, nodo)
+          return new NodoSinoSi(lexema, nodo)
         } else {
-          return new NodoNulo(lexema)
+          return new NodoSino(lexema, new NodoNulo(lexema))
         }
       } else if (lexema.tipo === 'FIN_BLOQUE') {
         return new NodoFinBloque(lexema)
@@ -160,7 +160,7 @@ export class AnalisisSintactico {
       return nodo
     } else if (FACTORES.includes(this.lexema.tipo)) {
       // Procesar número
-      if (this.lexema.tipo === 'ENTERO' || this.lexema.tipo === 'FLOTANTE') {
+      if (this.lexema.tipo === 'NUMERO') {
         const nodo = new NodoNumero(this.lexema)
         this.avanzar()
         return nodo

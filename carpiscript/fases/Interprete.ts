@@ -1,10 +1,10 @@
-import { Nodo, NodoUnario, NodoOperacionUnaria, NodoOperacionBinaria, NodoIdentificador, NodoInicioBloque, NodoFinBloque, NodoNulo } from '../componentes/nodos'
+import { Nodo, NodoUnario, NodoOperacionUnaria, NodoOperacionBinaria, NodoIdentificador, NodoInicioBloque, NodoFinBloque, NodoNulo, NodoSi, NodoSinoSi, NodoSino } from '../componentes/nodos'
 import { ErrorEjecucion } from '../componentes/errores'
 import { Contexto } from '../componentes/Contexto'
 import { type Bloque } from '../componentes/Bloque'
-import { Ingresar } from '../componentes/Ingresar'
+import { Io } from '../componentes/Io'
 
-const ingresar = new Ingresar()
+const io = new Io()
 
 export class Interprete {
   bloque: Bloque = []
@@ -37,9 +37,9 @@ export class Interprete {
       if (this.nodo instanceof NodoInicioBloque) {
         let ejecutado: boolean = false
 
-        if (this.nodo.nodo.lexema.tipo === 'SI') {
+        if (this.nodo instanceof NodoSi) {
           // SI
-          const verdadero = Boolean(await this.evaluarNodo(this.nodo.nodo, contextoLocal))
+          const verdadero = Boolean(await this.evaluarNodo(this.nodo, contextoLocal))
           if (verdadero) {
             await this.procesarBloque(contextoLocal)
             ejecutado = true
@@ -47,9 +47,9 @@ export class Interprete {
             await this.procesarBloque(contextoLocal, false)
           }
           // SINO
-          while (this.siguienteNodo instanceof NodoOperacionUnaria && this.siguienteNodo.nodo.lexema.tipo === 'SINO' && this.siguienteNodo.nodo instanceof NodoOperacionUnaria) {
+          while (this.siguienteNodo instanceof NodoSinoSi) {
             this.avanzar()
-            const verdadero = Boolean(await this.evaluarNodo((this.nodo.nodo as NodoOperacionUnaria).nodo, contextoLocal))
+            const verdadero = Boolean(await this.evaluarNodo((this.nodo as NodoSinoSi).nodo, contextoLocal))
             if (verdadero && !ejecutado) {
               await this.procesarBloque(contextoLocal)
               ejecutado = true
@@ -58,7 +58,7 @@ export class Interprete {
             }
           }
           // SINO
-          if (this.siguienteNodo instanceof NodoOperacionUnaria && this.siguienteNodo.nodo instanceof NodoNulo) {
+          if (this.siguienteNodo instanceof NodoSino) {
             this.avanzar()
             await this.procesarBloque(contextoLocal, !ejecutado)
           }
@@ -84,24 +84,43 @@ export class Interprete {
         const valor = contexto.obtenerVariable(nodo.lexema.valor as string)
         return valor
       } else if (nodo instanceof NodoOperacionUnaria) {
-        switch (nodo.lexema.tipo) {
-          case 'SUMA':
-            return await this.evaluarNodo(nodo.nodo, contexto)
-          case 'RESTA':
-            return -(await this.evaluarNodo(nodo.nodo, contexto))
-          case 'NUMERO':
-            return parseFloat(await this.evaluarNodo(nodo.nodo, contexto) as string)
-          case 'IMPRIMIR':
-            console.log(await this.evaluarNodo(nodo.nodo, contexto))
-            return undefined
-          case 'INGRESAR':
-            return await ingresar.ingresar(await this.evaluarNodo(nodo.nodo, contexto) + ': ')
-          case 'INGRESARNUMERO':
-            return parseFloat(await ingresar.ingresar(await this.evaluarNodo(nodo.nodo, contexto) + ': '))
-          case 'INICIO_BLOQUE':
-            return await this.evaluarNodo(nodo.nodo, contexto)
-          case 'SI':
-            return await this.evaluarNodo(nodo.nodo, contexto)
+        if (nodo.lexema.tipo === 'SUMA') {
+          // Suma unaria (+num)
+          return await this.evaluarNodo(nodo.nodo, contexto)
+        } else if (nodo.lexema.tipo === 'RESTA') {
+          // Resta unaria (-num)
+          return -(await this.evaluarNodo(nodo.nodo, contexto))
+        } else if (nodo.lexema.tipo === 'ENTERO') {
+          // Entero()
+          const valor = parseInt(await this.evaluarNodo(nodo.nodo, contexto) as string)
+          if (isNaN(valor)) {
+            throw this.generarError(ErrorEjecucion, 'El valor a convertir no es un número', nodo)
+          }
+          return valor
+        } else if (nodo.lexema.tipo === 'FLOTANTE') {
+          // Flotante()
+          const valor = parseFloat(await this.evaluarNodo(nodo.nodo, contexto) as string)
+          if (isNaN(valor)) {
+            throw this.generarError(ErrorEjecucion, 'El valor a convertir no es un número', nodo)
+          }
+          return valor
+        } else if (nodo.lexema.tipo === 'IMPRIMIR') {
+          // Imprimir()
+          console.log(await this.evaluarNodo(nodo.nodo, contexto))
+          return undefined
+        } else if (nodo.lexema.tipo === 'INGRESAR') {
+          // Ingresar()
+          return await io.ingresar(await this.evaluarNodo(nodo.nodo, contexto) + ': ')
+        } else if (nodo.lexema.tipo === 'INGRESARNUMERO') {
+          // IngresarNumero()
+          const valor = await io.ingresar(await this.evaluarNodo(nodo.nodo, contexto) + ': ')
+          if (isNaN(parseFloat(valor))) {
+            throw this.generarError(ErrorEjecucion, 'El valor ingresado no es un número', nodo)
+          }
+          return parseFloat(valor)
+        } else if (nodo.lexema.tipo === 'INICIO_BLOQUE') {
+          // Bloque
+          return await this.evaluarNodo(nodo.nodo, contexto)
         }
       } else {
         return nodo.lexema.valor
@@ -123,26 +142,35 @@ export class Interprete {
       }
 
       if (nodo.lexema.tipo === 'IGUAL_QUE') {
+        // Comparación: ==
         return a === b
       } else if (nodo.lexema.tipo === 'MAYOR_QUE') {
+        // Comparación: >
         return a > b
       } else if (nodo.lexema.tipo === 'MAYOR_IGUAL_QUE') {
+        // Comparación: >=
         return a >= b
       } else if (nodo.lexema.tipo === 'MENOR_QUE') {
+        // Comparación: <
         return a < b
       } else if (nodo.lexema.tipo === 'MENOR_IGUAL_QUE') {
+        // Comparación: <=
         return a <= b
       } else if (nodo.lexema.tipo === 'SUMA') {
+        // Suma
         return a + b
       } else if (nodo.lexema.tipo === 'RESTA' && typeof a === 'number' && typeof b === 'number') {
+        // Resta
         return a - b
       } else if (nodo.lexema.tipo === 'MULTIPLICACION') {
+        // Multiplicación
         if (typeof a === 'number' && typeof b === 'number') {
           return a * b
         } else if (typeof a === 'string' && typeof b === 'number') {
           return a.repeat(b)
         }
       } else if (nodo.lexema.tipo === 'DIVISION') {
+        // División
         if (typeof a === 'number' && typeof b === 'number') {
           if (b === 0) {
             throw this.generarError(ErrorEjecucion, 'División por cero', nodo)
@@ -152,6 +180,7 @@ export class Interprete {
           return a.split(b)
         }
       } else if (nodo.lexema.tipo === 'DIVISION_ENTERA') {
+        // División entera: //
         if (typeof a === 'number' && typeof b === 'number') {
           if (b === 0) {
             throw this.generarError(ErrorEjecucion, 'División por cero', nodo)
@@ -159,6 +188,7 @@ export class Interprete {
           return Math.floor(a / b)
         }
       } else if (nodo.lexema.tipo === 'MODULO') {
+        // Módulo: %
         if (typeof a === 'number' && typeof b === 'number') {
           if (b === 0) {
             throw this.generarError(ErrorEjecucion, 'División por cero', nodo)
@@ -166,6 +196,7 @@ export class Interprete {
           return a % b
         }
       } else if (nodo.lexema.tipo === 'EXPONENTE') {
+        // Exponente: **
         if (typeof a === 'number' && typeof b === 'number') {
           return a ** b
         }

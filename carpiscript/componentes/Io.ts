@@ -1,6 +1,6 @@
 import * as readline from 'readline'
 
-export class Ingresar {
+export class Io {
   private readonly rl: readline.Interface
 
   constructor () {

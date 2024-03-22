@@ -37,4 +37,8 @@ export class NodoOperacionBinaria extends Nodo {
 }
 
 export class NodoInicioBloque extends NodoOperacionUnaria {}
+export class NodoSi extends NodoInicioBloque {}
+export class NodoSinoSi extends NodoInicioBloque {}
+export class NodoSino extends NodoInicioBloque {}
+
 export class NodoFinBloque extends Nodo {}

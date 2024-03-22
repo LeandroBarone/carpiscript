@@ -26,16 +26,22 @@ console.log(ejecutar('(1+2)*3'))
 
 ## Sintaxis
 
-```python
-precioPorDocena = ingresarNumero("Precio por docena")  # => asumiendo 6000
-precioUnitario = precioPorDocena // 12  # División entera
-impuestos = 10
-precioFinal = precioUnitario * (1 + impuestos / 100)
-imprimir("El precio final con " + impuestos + "% de impuestos es $" + precioFinal)
-si (precioFinal > 1000) {
+```js
+IMPUESTOS = 10
+
+precioPorDocena = ingresarNumero("Precio por docena")
+
+precioUnitario = precioPorDocena / 12
+precioFinal = precioUnitario * (1 + IMPUESTOS / 100)
+
+si (precioFinal < 10) {
+  imprimir('Precio demasiado bajo')
+}
+sino (precioFinal > 10000) {
   imprimir('Precio demasiado alto')
 }
-
+sino {
+  imprimir("El precio final con " + IMPUESTOS + "% de impuestos es $" + entero(precioFinal))
+}
 
 ```
-Salida: El precio final con 10% de impuestos es $550
