@@ -1,5 +1,5 @@
 import { type Lexema } from '../componentes/Lexema'
-import { Nodo, NodoOperacionUnaria, NodoOperacionBinaria, NodoNumero, NodoIdentificador, NodoCadena, NodoInicioBloque, NodoFinBloque, NodoNulo, NodoSi, NodoSinoSi, NodoSino } from '../componentes/nodos'
+import { type Nodo, NodoOperacionUnaria, NodoOperacionBinaria, NodoNumero, NodoIdentificador, NodoCadena, NodoFinBloque, NodoNulo, NodoSi, NodoSinoSi, NodoSino } from '../componentes/nodos'
 import { ErrorSintactico } from '../componentes/errores'
 import { type Sentencia } from '../componentes/Sentencia'
 import { type Bloque } from '../componentes/Bloque'

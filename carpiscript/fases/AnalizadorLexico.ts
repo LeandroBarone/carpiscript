@@ -149,7 +149,7 @@ export class AnalizadorLexico {
     const nLineaInicial = this.nLinea
     const nColumnaInicial = this.nColumna
 
-    while (!this.fin() && (this.esDigito(this.caracter) || this.caracter === '.') || this.caracter === '_') {
+    while (!this.fin() && (this.esDigito(this.caracter) || this.caracter === '.' || this.caracter === '_')) {
       if (this.caracter === '_') {
         this.avanzar()
         continue
